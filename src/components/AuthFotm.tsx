@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import React, { useState } from "react";
+import Image from "next/image";
 import axios from "axios";
 import { API_ENDPOINTS } from "@/lib/api";
-// import { apiRequest } from "@/lib/api";
 
 type AuthMode = "login" | "signup";
 
@@ -16,6 +17,7 @@ export default function AuthPage({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -36,16 +38,15 @@ export default function AuthPage({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(""); // Clear previous errors
+    setError("");
+    setLoading(true);
 
     if (isSignUp) {
       if (formData.password !== formData.confirmPassword) {
         setError("Passwords don't match!");
+        setLoading(false);
         return;
       }
-
-      // Handle sign up logic here
-      console.log("Sign Up:", formData);
 
       try {
         const res = await axios.post(
@@ -61,18 +62,20 @@ export default function AuthPage({
         );
 
         if (res.status === 201) {
-          console.log("res", res.data);
-
-          window.location.href = "/";
+          window.location.href = "/dashboard";
         }
-      } catch (error: any) {
-        setError(
-          error.message || "Failed to create account. Please try again."
-        );
+      } catch (error: unknown) {
+        const message =
+          axios.isAxiosError(error) && error.response?.data?.message
+            ? error.response.data.message
+            : error instanceof Error
+              ? error.message
+              : "Failed to create account. Please try again.";
+        setError(message);
+      } finally {
+        setLoading(false);
       }
     } else {
-      // Handle sign in logic here
-
       try {
         const res = await axios.post(
           `${API_ENDPOINTS.LOGIN}`,
@@ -86,73 +89,99 @@ export default function AuthPage({
         );
 
         if (res.status === 200) {
-          console.log("res", res.data);
-
-          window.location.href = "/";
+          window.location.href = "/dashboard";
         }
-      } catch (error: any) {
-        setError(error.message || "Failed to sign in. Please try again.");
+      } catch (error: unknown) {
+        const message =
+          axios.isAxiosError(error) && error.response?.data?.message
+            ? error.response.data.message
+            : error instanceof Error
+              ? error.message
+              : "Failed to sign in. Please try again.";
+        setError(message);
+      } finally {
+        setLoading(false);
       }
-
-      console.log("Sign In:", {
-        email: formData.email,
-        password: formData.password,
-      });
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg">
-        {/* Toggle Tabs */}
-        <div className="flex mb-8 border-b border-gray-200">
-          <button
-            type="button"
-            onClick={() => {
-              setIsSignUp(false);
-              setError("");
-            }}
-            className={`flex-1 py-3 cursor-pointer text-center font-medium transition-colors ${
-              !isSignUp
-                ? "text-black border-b-2 border-black"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            Sign In
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setIsSignUp(true);
-              setError("");
-            }}
-            className={`flex-1 cursor-pointer py-3 text-center font-medium transition-colors ${
-              isSignUp
-                ? "text-black border-b-2 border-black"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            Sign Up
-          </button>
-        </div>
+    <div className="min-h-screen bg-slate-100">
+      <div className="bg-[#0f172a] px-4 py-2 text-center text-sm font-medium text-slate-100">
+        Fresh deals every day. Secure buyer login.
+      </div>
+      <div className="mx-auto grid min-h-[calc(100vh-40px)] max-w-7xl gap-0 pt-3 lg:grid-cols-2 lg:pt-6">
+        <aside className="hidden bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#334155] p-10 text-white lg:flex lg:flex-col lg:justify-between">
+          <div>
+            <Image src="/shopzo_logo_tp.png" alt="Shopzo" width={180} height={68} priority />
+            <p className="mt-8 inline-flex rounded-full bg-cyan-400/20 px-3 py-1 text-xs font-semibold text-cyan-200">
+              Buyer Experience
+            </p>
+            <h2 className="mt-4 text-4xl font-bold leading-tight">
+              Grocery-style shopping flow with modern ecommerce UX.
+            </h2>
+            <p className="mt-4 max-w-md text-sm text-slate-200">
+              Continue with your wishlist, track orders, and shop top categories in one place.
+            </p>
+          </div>
+          <div className="space-y-3 text-sm text-slate-200">
+            <p>• Fast account setup in under 30 seconds</p>
+            <p>• Personalized product feed after login</p>
+            <p>• Cart and order history synced across devices</p>
+          </div>
+        </aside>
 
-        {/* Form Header */}
-        <h1 className="text-3xl text-black font-bold text-center mb-2">
-          {isSignUp ? "Create Account" : "Welcome Back"}
-        </h1>
-        <p className="text-gray-600 text-center mb-6">
-          {isSignUp
-            ? "Join Shopzo and start shopping"
-            : "Sign in to your Shopzo account"}
-        </p>
+        <section className="flex items-center justify-center p-5 sm:p-8">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl sm:p-8">
+            <div className="mb-5 flex items-center justify-between">
+              <Image src="/shopzo_logo.png" alt="Shopzo" width={140} height={54} priority />
+              <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
+                Buyer Portal
+              </p>
+            </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="mb-6 flex rounded-full bg-slate-100 p-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSignUp(false);
+                  setError("");
+                }}
+                className={`flex-1 rounded-full py-2 text-sm font-semibold transition ${
+                  !isSignUp ? "bg-white text-slate-900 shadow" : "text-slate-500"
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSignUp(true);
+                  setError("");
+                }}
+                className={`flex-1 rounded-full py-2 text-sm font-semibold transition ${
+                  isSignUp ? "bg-white text-slate-900 shadow" : "text-slate-500"
+                }`}
+              >
+                Sign Up
+              </button>
+            </div>
+
+            <h1 className="text-2xl font-bold text-slate-900">
+              {isSignUp ? "Create your account" : "Welcome back"}
+            </h1>
+            <p className="mb-6 mt-1 text-sm text-slate-600">
+              {isSignUp
+                ? "Start shopping with curated categories and quick checkout."
+                : "Sign in to continue where you left off."}
+            </p>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
           {isSignUp && (
             <div>
               <label
                 htmlFor="name"
-                className="block text-black text-sm font-medium mb-1"
+                className="mb-1 block text-sm font-medium text-slate-700"
               >
                 Full Name
               </label>
@@ -164,7 +193,7 @@ export default function AuthPage({
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="John Doe"
-                className="w-full text-black border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition"
+                className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-600"
               />
             </div>
           )}
@@ -172,7 +201,7 @@ export default function AuthPage({
           <div>
             <label
               htmlFor="email"
-              className="block text-black text-sm font-medium mb-1"
+              className="mb-1 block text-sm font-medium text-slate-700"
             >
               Email
             </label>
@@ -184,14 +213,14 @@ export default function AuthPage({
               value={formData.email}
               onChange={handleChange}
               placeholder="you@example.com"
-              className="w-full border text-black border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition"
+              className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-600"
             />
           </div>
 
           <div>
             <label
               htmlFor="password"
-              className="block text-black text-sm font-medium mb-1"
+              className="mb-1 block text-sm font-medium text-slate-700"
             >
               Password
             </label>
@@ -203,12 +232,13 @@ export default function AuthPage({
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full text-black border border-gray-300 rounded-lg px-4 py-2.5 pr-12 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition"
+                className="w-full rounded-xl border border-slate-300 px-4 py-2.5 pr-12 text-slate-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-600"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black transition"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900 transition"
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? (
                   <svg
@@ -253,7 +283,7 @@ export default function AuthPage({
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="block text-black text-sm font-medium mb-1"
+                className="mb-1 block text-sm font-medium text-slate-700"
               >
                 Confirm Password
               </label>
@@ -265,16 +295,17 @@ export default function AuthPage({
                   required={isSignUp}
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={`w-full text-black border rounded-lg px-4 py-2.5 pr-12 focus:outline-none focus:ring-2 focus:border-transparent transition ${
+                  className={`w-full rounded-xl border px-4 py-2.5 pr-12 text-slate-900 focus:border-transparent focus:outline-none focus:ring-2 transition ${
                     error
                       ? "border-red-500 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-black"
+                      : "border-slate-300 focus:ring-indigo-600"
                   }`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900 transition"
+                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                 >
                   {showConfirmPassword ? (
                     <svg
@@ -334,12 +365,12 @@ export default function AuthPage({
 
           {!isSignUp && (
             <div className="flex justify-end">
-              <a
+              <Link
                 href="#"
-                className="text-sm text-gray-600 hover:text-black transition"
+                className="text-sm text-slate-600 transition hover:text-slate-900"
               >
                 Forgot password?
-              </a>
+              </Link>
             </div>
           )}
 
@@ -351,44 +382,20 @@ export default function AuthPage({
 
           <button
             type="submit"
-            className="w-full cursor-pointer bg-black text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors mt-6"
+            disabled={loading}
+            className="mt-2 w-full rounded-xl bg-slate-900 py-3 font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSignUp ? "Create Account" : "Sign In"}
+            {loading
+              ? isSignUp
+                ? "Creating account..."
+                : "Signing in..."
+              : isSignUp
+                ? "Create Account"
+                : "Sign In"}
           </button>
-        </form>
-
-        {/* Divider */}
-        <div className="mt-6 text-center text-sm text-gray-600">
-          {isSignUp ? (
-            <p>
-              Already have an account?{" "}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSignUp(false);
-                  setError("");
-                }}
-                className="text-black font-medium hover:underline"
-              >
-                Sign In
-              </button>
-            </p>
-          ) : (
-            <p>
-              Don't have an account?{" "}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSignUp(true);
-                  setError("");
-                }}
-                className="text-black font-medium hover:underline"
-              >
-                Sign Up
-              </button>
-            </p>
-          )}
-        </div>
+            </form>
+          </div>
+        </section>
       </div>
     </div>
   );
