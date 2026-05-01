@@ -3,15 +3,17 @@
 import { useEffect, useState } from "react";
 import { getCurrentUser } from "@/lib/auth";
 
+type CurrentUser = {
+  id: string;
+};
+
 export default function HomePage() {
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<CurrentUser | null>(null);
 
   useEffect(() => {
     getCurrentUser()
       .then((data) => {
-        console.log("user",data);
-        
         setUser(data.user);
       })
       .catch(() => {
@@ -24,8 +26,8 @@ export default function HomePage() {
 
   return (
     <main className="p-6">
-      <h1 className="text-2xl font-bold">Welcome to Shopzo 👋</h1>
-      <p className="mt-2">Logged in as: {user.id}</p>
+      <h1 className="text-2xl font-bold">Welcome to Shopzo</h1>
+      <p className="mt-2">Logged in as: {user?.id}</p>
     </main>
   );
 }
