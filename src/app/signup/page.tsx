@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import AuthForm from "@/components/AuthFotm";
+import AuthForm from "@/app/components/AuthFotm";
 
 export const metadata: Metadata = {
   title: "Sign up | Shopzo Buyer",
@@ -7,9 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function SignupPage() {
-  return (
-    <div className="min-h-screen">
-      <AuthForm defaultMode="signup" />
-    </div>
-  );
+  return <AuthForm defaultMode="signup" />;
 }

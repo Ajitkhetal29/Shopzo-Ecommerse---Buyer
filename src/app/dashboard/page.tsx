@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import axios from "axios";
+import BuyerSiteHeader from "@/app/components/BuyerSiteHeader";
+import LatestOffersBar from "@/app/components/LatestOffersBar";
 import { API_ENDPOINTS } from "@/lib/api";
 
 export default function DashboardPage() {
@@ -17,7 +19,10 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="mx-auto min-h-[60vh] max-w-7xl p-4 md:p-8">
+    <>
+      <LatestOffersBar />
+      <BuyerSiteHeader />
+      <main className="mx-auto min-h-[60vh] max-w-7xl p-4 md:p-8">
       <section className="rounded-2xl border border-slate-200 bg-white p-6 md:p-8">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -37,5 +42,6 @@ export default function DashboardPage() {
         </div>
       </section>
     </main>
+    </>
   );
 }

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import AuthForm from "@/components/AuthFotm";
+import AuthForm from "@/app/components/AuthFotm";
 
 export const metadata: Metadata = {
   title: "Sign in | Shopzo Buyer",
