@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import AuthForm from "@/app/components/AuthFotm";
+import LoginClient from "./LoginClient";
 
 export const metadata: Metadata = {
   title: "Sign in | Shopzo Buyer",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function LoginPage() {
-  return <AuthForm defaultMode="login" />;
+  return <LoginClient />;
 }
