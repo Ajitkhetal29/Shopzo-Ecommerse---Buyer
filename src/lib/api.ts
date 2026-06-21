@@ -24,4 +24,11 @@ export const API_ENDPOINTS = {
   GET_PRODUCT_BY_ID: `${API_BASE_URL}/product`,
   GET_PRODUCT_BY_SLUG: `${API_BASE_URL}/product/slug`,
   GET_PRODUCT_VARIANTS: `${API_BASE_URL}/product/variants/product`,
+
+    // cart
+    GET_CART: `${API_BASE_URL}/cart`,
+    ADD_TO_CART: `${API_BASE_URL}/cart/add`,
+    UPDATE_CART_QUANTITY: `${API_BASE_URL}/cart/update`,
+    REMOVE_FROM_CART: `${API_BASE_URL}/cart/remove`,
+    CLEAR_CART: `${API_BASE_URL}/cart/clear`,
 };

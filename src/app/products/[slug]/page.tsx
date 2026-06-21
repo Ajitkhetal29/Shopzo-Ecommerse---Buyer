@@ -1,12 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
+import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "next/navigation";
 import BuyerShell from "@/app/components/BuyerShell";
 import { API_ENDPOINTS } from "@/lib/api";
 import { formatPrice } from "@/lib/currency";
+import type { RootState, AppDispatch } from "@/store";
+import { setCartItems, setError as setCartError } from "@/store/slices/cartSlice";
 import type { CatalogProduct, CatalogVariant } from "@/types/catalog";
 
 type ProductResponse = {
@@ -22,6 +26,9 @@ type VariantsResponse = {
 };
 
 export default function BuyerProductDetailPage() {
+  const dispatch = useDispatch<AppDispatch>();
+  const buyer = useSelector((state: RootState) => state.auth.buyer);
+  const router = useRouter();
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
 
@@ -31,6 +38,8 @@ export default function BuyerProductDetailPage() {
   const [selectedVariantId, setSelectedVariantId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [addToCartSuccess, setAddToCartSuccess] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
@@ -82,6 +91,34 @@ export default function BuyerProductDetailPage() {
       isMounted = false;
     };
   }, [slug]);
+
+    const handleAddToCart = async () => {
+      if (!buyer || !product?._id) {
+        // redirect unauthenticated users to login before adding to cart
+        router.push("/login");
+        return;
+      }
+
+      setIsAddingToCart(true);
+      try {
+        const userId = (buyer as any)._id || (buyer as any).id;
+        const response = await axios.post(API_ENDPOINTS.ADD_TO_CART, {
+          userId,
+          productId: product._id,
+          quantity: 1,
+        });
+
+        if (response.data.success || response.data.data?.items) {
+          dispatch(setCartItems(response.data.data.items));
+          setAddToCartSuccess(true);
+          setTimeout(() => setAddToCartSuccess(false), 2000);
+        }
+      } catch (err: any) {
+        dispatch(setCartError(err.message || "Failed to add to cart"));
+      } finally {
+        setIsAddingToCart(false);
+      }
+    };
 
   const selectedVariant = useMemo(
     () => variants.find((variant) => variant._id === selectedVariantId) || variants[0],
@@ -264,9 +301,15 @@ export default function BuyerProductDetailPage() {
               <div className="flex flex-col gap-3 sm:flex-row">
                 <button
                   type="button"
-                  className="auth-btn-shimmer rounded-full bg-shop-accent px-6 py-3 text-sm font-semibold text-white transition hover:bg-shop-accent-hover"
+                   onClick={handleAddToCart}
+                   disabled={isAddingToCart}
+                   className={`auth-btn-shimmer rounded-full px-6 py-3 text-sm font-semibold text-white transition ${
+                     addToCartSuccess
+                       ? "bg-green-600 hover:bg-green-700"
+                       : "bg-shop-accent hover:bg-shop-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
+                   }`}
                 >
-                  Add to cart
+                    {isAddingToCart ? "Adding..." : addToCartSuccess ? "Added to cart ✓" : "Add to cart"}
                 </button>
                 <button
                   type="button"

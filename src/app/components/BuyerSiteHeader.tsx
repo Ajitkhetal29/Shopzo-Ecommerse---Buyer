@@ -205,7 +205,7 @@ function ProfileMenu({
 function CartButton({ count }: { count: number }) {
   return (
     <Link
-      href="#"
+      href="/cart"
       className="relative flex h-9 w-9 items-center justify-center rounded-full text-foreground transition hover:bg-neutral-100 dark:hover:bg-neutral-800"
       aria-label={`Shopping cart, ${count} items`}
     >

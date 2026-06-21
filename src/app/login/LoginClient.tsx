@@ -4,8 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import axios from "axios";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
 import { API_ENDPOINTS } from "@/lib/api";
 import { AuthThemeToggle } from "@/app/components/ThemeToggle";
+import { AppDispatch } from "@/store";
+import { setBuyer } from "@/store/slices/authSlice";
 
 const benefits = [
   "Track active orders",
@@ -20,6 +23,7 @@ const categories = [
 ];
 
 export default function LoginClient() {
+  const dispatch = useDispatch<AppDispatch>();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -33,7 +37,8 @@ export default function LoginClient() {
 
     try {
       const res = await axios.post(API_ENDPOINTS.LOGIN, { email, password }, { withCredentials: true });
-      if (res.status === 200) {
+      if (res.status === 200 && res.data?.user) {
+        dispatch(setBuyer(res.data.user));
         window.location.href = "/dashboard";
       }
     } catch (err: unknown) {

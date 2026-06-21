@@ -11,7 +11,7 @@ type MobileBottomNavProps = {
 const NAV_ITEMS = [
   { id: "home", href: "/dashboard", label: "Home", icon: HomeIcon },
   { id: "search", href: null, label: "Search", icon: SearchIcon },
-  { id: "cart", href: "#", label: "Cart", icon: CartIcon },
+  { id: "cart", href: "/cart", label: "Cart", icon: CartIcon },
   { id: "profile", href: "/profile", label: "Profile", icon: ProfileIcon },
 ] as const;
 
