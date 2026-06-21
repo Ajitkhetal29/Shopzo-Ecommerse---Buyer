@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
-import { ThemeProvider } from "@/app/components/theme-provider";
+import { Inter } from "next/font/google";
+import Providers from "./provider";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Shopzo Buyer",
@@ -14,8 +21,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="font-sans antialiased">
-        <ThemeProvider>{children}</ThemeProvider>
+      <body className={`${inter.variable} font-sans antialiased`}>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

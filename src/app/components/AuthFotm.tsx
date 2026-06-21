@@ -4,9 +4,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
-import { useTheme } from "next-themes";
+import { AuthThemeToggle } from "@/app/components/ThemeToggle";
 import axios from "axios";
 import { API_ENDPOINTS } from "@/lib/api";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "@/store";
+import { setBuyer } from "@/store/slices/authSlice";
 
 type AuthMode = "login" | "signup";
 
@@ -39,6 +42,10 @@ export default function AuthPage({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.auth.isAuthenticated
+  );
   const isSignUp =
     pathname === "/signup"
       ? true
@@ -71,6 +78,12 @@ export default function AuthPage({
   useEffect(() => {
     setError("");
   }, [pathname]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/dashboard");
+    }
+  }, [isAuthenticated, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -108,8 +121,9 @@ export default function AuthPage({
           { withCredentials: true }
         );
 
-        if (res.status === 201) {
-          window.location.href = "/dashboard";
+        if (res.status === 201 && res.data.user) {
+          dispatch(setBuyer(res.data.user));
+          router.push("/dashboard");
         }
       } catch (error: unknown) {
         const message =
@@ -133,8 +147,9 @@ export default function AuthPage({
           { withCredentials: true }
         );
 
-        if (res.status === 200) {
-          window.location.href = "/dashboard";
+        if (res.status === 200 && res.data.user) {
+          dispatch(setBuyer(res.data.user));
+          router.push("/dashboard");
         }
       } catch (error: unknown) {
         const message =
@@ -164,7 +179,7 @@ export default function AuthPage({
 
   return (
     <div className="min-h-dvh bg-[#f7f4ee] text-slate-950 dark:bg-zinc-950 dark:text-zinc-50">
-      <ThemeToggle />
+      <AuthThemeToggle />
       <main className="grid min-h-dvh lg:grid-cols-[minmax(0,0.92fr)_minmax(560px,1.08fr)]">
         <section className="relative hidden overflow-hidden bg-slate-950 text-white lg:block">
           <div className="absolute inset-0 auth-market-pattern opacity-75" aria-hidden />
@@ -435,39 +450,6 @@ export default function AuthPage({
   );
 }
 
-function ThemeToggle() {
-  const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => setMounted(true));
-
-    return () => cancelAnimationFrame(frame);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <div
-        className="fixed right-4 top-4 z-50 h-10 w-10 shrink-0 rounded-md border border-transparent bg-transparent"
-        aria-hidden
-      />
-    );
-  }
-
-  const isDark = resolvedTheme === "dark";
-
-  return (
-    <button
-      type="button"
-      onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="fixed right-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-800 shadow-md transition-[transform,background-color,box-shadow] duration-200 hover:scale-105 hover:bg-slate-50 hover:shadow-lg active:scale-95 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
-      aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
-    >
-      {isDark ? <SunIcon /> : <MoonIcon />}
-    </button>
-  );
-}
-
 function PasswordToggle({
   visible,
   onToggle,
@@ -484,32 +466,6 @@ function PasswordToggle({
     >
       {visible ? <EyeOffIcon /> : <EyeIcon />}
     </button>
-  );
-}
-
-function MoonIcon() {
-  return (
-    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={1.75}
-        d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"
-      />
-    </svg>
-  );
-}
-
-function SunIcon() {
-  return (
-    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={1.75}
-        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-      />
-    </svg>
   );
 }
 

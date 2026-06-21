@@ -5,6 +5,7 @@ import Link from "next/link";
 import axios from "axios";
 import { useState } from "react";
 import { API_ENDPOINTS } from "@/lib/api";
+import { AuthThemeToggle } from "@/app/components/ThemeToggle";
 
 const benefits = [
   "Track active orders",
@@ -50,6 +51,7 @@ export default function LoginClient() {
 
   return (
     <main className="min-h-dvh bg-[#f5f7fb] text-slate-950 dark:bg-zinc-950 dark:text-white">
+      <AuthThemeToggle />
       <div className="grid min-h-dvh lg:grid-cols-[minmax(0,0.95fr)_minmax(520px,1.05fr)]">
         <section className="relative hidden overflow-hidden bg-slate-950 text-white lg:block">
           <div className="absolute inset-0 buyer-login-backdrop" aria-hidden />

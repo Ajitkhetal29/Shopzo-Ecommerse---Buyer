@@ -3,11 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 
 export const DEFAULT_LATEST_OFFERS: string[] = [
-  "Fast, tracked delivery on orders over $35",
-  "New buyers get 10% off the first order with code WELCOME10",
-  "Flash weekend: up to 40% off selected groceries",
-  "Save more on seasonal bundles and pantry staples",
-  "Members get early access to deals every Tuesday",
+  "Free delivery on orders over Rs 999",
+  "10% off your first order with code WELCOME10",
+  "Up to 40% off selected items this weekend",
 ];
 
 type LatestOffersBarProps = {
@@ -48,38 +46,35 @@ export default function LatestOffersBar({
       role="region"
       aria-roledescription="carousel"
       aria-label="Latest offers"
-      className={`flex w-full items-stretch bg-slate-950 text-white dark:bg-black ${className}`}
+      className={`border-b border-shop-border bg-shop-surface ${className}`}
     >
-      <button
-        type="button"
-        onClick={() => go(-1)}
-        className="flex w-11 shrink-0 items-center justify-center transition-colors hover:bg-white/10 focus-visible:relative focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-emerald-300 sm:w-12"
-        aria-label="Previous offer"
-      >
-        <ChevronLeft className="h-5 w-5 opacity-90" />
-      </button>
+      <div className="mx-auto flex max-w-7xl items-center px-4 py-2.5 sm:px-6 lg:px-8">
+        <button
+          type="button"
+          onClick={() => go(-1)}
+          className="mr-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-shop-muted transition hover:bg-neutral-100 hover:text-foreground dark:hover:bg-neutral-800"
+          aria-label="Previous offer"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
 
-      <div className="flex min-h-[42px] min-w-0 flex-1 items-center justify-center px-3 py-2 sm:min-h-[44px] sm:px-4">
         <p
           key={index}
           aria-live="polite"
-          className="w-full text-center text-[13px] font-semibold leading-snug tracking-normal text-slate-100 sm:text-sm md:text-[15px]"
+          className="min-w-0 flex-1 text-center text-xs text-shop-muted sm:text-sm"
         >
-          <span className="mr-2 inline-block rounded bg-emerald-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-normal text-slate-950 dark:bg-cyan-400">
-            Offer
-          </span>
           {message}
         </p>
-      </div>
 
-      <button
-        type="button"
-        onClick={() => go(1)}
-        className="flex w-11 shrink-0 items-center justify-center transition-colors hover:bg-white/10 focus-visible:relative focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-emerald-300 sm:w-12"
-        aria-label="Next offer"
-      >
-        <ChevronRight className="h-5 w-5 opacity-90" />
-      </button>
+        <button
+          type="button"
+          onClick={() => go(1)}
+          className="ml-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-shop-muted transition hover:bg-neutral-100 hover:text-foreground dark:hover:bg-neutral-800"
+          aria-label="Next offer"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
     </div>
   );
 }
@@ -87,7 +82,7 @@ export default function LatestOffersBar({
 function ChevronLeft({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m15 18-6-6 6-6" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="m15 18-6-6 6-6" />
     </svg>
   );
 }
@@ -95,7 +90,7 @@ function ChevronLeft({ className }: { className?: string }) {
 function ChevronRight({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m9 18 6-6-6-6" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="m9 18 6-6-6-6" />
     </svg>
   );
 }
