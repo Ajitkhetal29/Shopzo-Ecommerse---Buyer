@@ -14,11 +14,19 @@ import {
 import { API_ENDPOINTS } from "@/lib/api";
 import BuyerShell from "../components/BuyerShell";
 
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
 export default function CartPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { items, loading } = useSelector((state: RootState) => state.cart);
   const buyer = useSelector((state: RootState) => state.auth.buyer);
   const [updatingQuantity, setUpdatingQuantity] = useState<string | null>(null);
+  const [isProcessingOrder, setIsProcessingOrder] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const userId = buyer?._id;
 
   useEffect(() => {
@@ -31,7 +39,9 @@ export default function CartPage() {
     if (!userId) return;
     dispatch(setLoading(true));
     try {
-      const response = await fetch(`${API_ENDPOINTS.GET_CART}/${user._id}`);
+      const response = await fetch(`${API_ENDPOINTS.GET_CART}/${userId}`, {
+        credentials: "include",
+      });
       if (!response.ok) throw new Error("Failed to fetch cart");
       const data = await response.json();
       dispatch(setCartItems(data.data?.items || []));
@@ -97,6 +107,125 @@ export default function CartPage() {
     const unitPrice = item.product.minPrice ?? item.product.price ?? 0;
     return sum + unitPrice * item.quantity;
   }, 0);
+
+
+  // Load the Razorpay checkout script only once.
+  // If the script is already on the page, just reuse it.
+  const loadRazorpayScript = async () => {
+    if (window.Razorpay) {
+      return true;
+    }
+
+    return new Promise<boolean>((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  // Send the Razorpay payment result to the backend for signature verification.
+  const verifyPayment = async (orderId: string, razorpayResponse: any) => {
+    const response = await fetch(API_ENDPOINTS.VERIFY_PAYMENT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderId,
+        paymentId: razorpayResponse.razorpay_payment_id,
+        signature: razorpayResponse.razorpay_signature,
+      }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || "Payment verification failed");
+    }
+
+    return data;
+  };
+
+  // Main checkout flow.
+  // 1) create order on backend
+  // 2) load Razorpay checkout script
+  // 3) open Razorpay payment window
+  // 4) verify payment signature on backend
+  const handlePlaceOrder = async () => {
+    if (!userId) {
+      setCheckoutError("Please log in before checkout.");
+      return;
+    }
+
+    if (items.length === 0) {
+      setCheckoutError("Your cart is empty.");
+      return;
+    }
+
+    setIsProcessingOrder(true);
+    setCheckoutError(null);
+
+    try {
+      // Create order on backend and get Razorpay order details.
+      const response = await fetch(API_ENDPOINTS.PLACE_ORDER, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          items,
+          totalAmount: totalPrice,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to create order.");
+      }
+
+      const razorpayOrder = data.data?.razorpayOrder;
+      const orderId = data.data?.orderId;
+      if (!razorpayOrder || !orderId) {
+        throw new Error("Invalid order response from backend.");
+      }
+
+      // Load the Razorpay script.
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded || !window.Razorpay) {
+        throw new Error("Unable to load Razorpay checkout.");
+      }
+
+      // Create the Razorpay checkout options.
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "",
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        order_id: razorpayOrder.id,
+        name: "Shopzo",
+        description: "Complete your order payment",
+        handler: async (razorpayResponse: any) => {
+          try {
+            await verifyPayment(orderId, razorpayResponse);
+            alert("Payment complete. Order confirmed.");
+          } catch (error: any) {
+            setCheckoutError(error.message || "Unable to verify payment.");
+          } finally {
+            setIsProcessingOrder(false);
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setIsProcessingOrder(false);
+          },
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (error: any) {
+      setCheckoutError(error.message || "Failed to process payment.");
+      setIsProcessingOrder(false);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -262,8 +391,15 @@ export default function CartPage() {
               </span>
             </div>
 
-            <button className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-medium mb-3">
-              Proceed to Checkout
+            {checkoutError && (
+              <p className="text-sm text-red-600 mb-3">{checkoutError}</p>
+            )}
+            <button
+              onClick={handlePlaceOrder}
+              disabled={isProcessingOrder || items.length === 0}
+              className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-medium mb-3 disabled:opacity-50"
+            >
+              {isProcessingOrder ? "Processing payment..." : "Proceed to Checkout"}
             </button>
             <Link
               href="/products"

@@ -31,4 +31,8 @@ export const API_ENDPOINTS = {
     UPDATE_CART_QUANTITY: `${API_BASE_URL}/cart/update`,
     REMOVE_FROM_CART: `${API_BASE_URL}/cart/remove`,
     CLEAR_CART: `${API_BASE_URL}/cart/clear`,
+
+    // place order
+    PLACE_ORDER: `${API_BASE_URL}/order`,
+    VERIFY_PAYMENT: `${API_BASE_URL}/order/verify`,
 };

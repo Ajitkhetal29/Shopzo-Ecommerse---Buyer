@@ -7,6 +7,7 @@ export interface CartItem {
     name: string;
     slug: string;
     minPrice?: number;
+    price?: number;
     images?: any[];
   };
   quantity: number;
